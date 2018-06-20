@@ -1,0 +1,142 @@
+<link rel="import" href="doev-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/skeleton-carousel/skeleton-carousel.html">
+<link rel="import" href="celebration-avatar.html">
+<link rel="import" href="slide-visual.html">
+
+<dom-module id="celebration-slideshow">
+  <template>
+    <style>
+      :host {
+        display: block;
+      };  
+      * {
+        box-sizing: border-box;
+      }
+      skeleton-carousel {
+        max-width: 600px;
+        margin: auto;
+      }
+      video {
+        width: 100;
+        max-height: 280px;
+      }
+      audio {
+        width: 100%;
+      }
+      img {
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        pointer-events: none;
+      }
+    </style>
+    
+    <skeleton-carousel
+      nav 
+      loop
+      on-swiping-changed="pauseMedia"
+      selected="{{slideIndex}}"
+    >
+      <template is="dom-repeat" items="[[celebrations]]" as="celebration">
+        <div id="current-slide-container">
+
+          <slide-visual 
+            audio-url="[[celebration.audioUrl]]"
+            video-url="[[celebration.videoUrl]]"
+            media-playable="[[_slideMatchesIndex(slideIndex, index)]]"
+            most-recent-user-media-state-is-play="{{autoPlay}}"
+          ></slide-visual>
+          <blockquote>[[celebration.message]]</blockquote>
+          <img url="[[celebration.celebrationSizes.0.url]]" draggable="false">
+     
+          <template is="dom-if" if="[[celebration.celebrationSizes.0.url]]" restamp>
+            <img src="[[celebration.celebrationSizes.0.url]]" alt="">
+          </template>    
+
+          <celebration-avatar
+            name="[[celebration.name]]"
+            image-url="[[celebration.avatarSizes.0.url]]"
+          ></celebration-avatar>      
+        </div>
+      </template>      
+
+    </skeleton-carousel>
+    
+
+
+  </template>
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class CelebrationSlideshow extends DoevElement {
+      static get is() { return 'celebration-slideshow'; }
+      static get properties() {
+        return {
+          celebrations: {
+            type: Array,
+            value: []
+          },
+          slideIndex: {
+            type: Number,
+            value: 0,
+            observer: "_indexChanged"
+          },
+          playMedia: {
+            type: Boolean,
+            value: false
+          },
+          autoPlay: {
+            type: Boolean,
+            value: false
+          }
+        };
+      }
+
+      ready() {
+        super.ready()
+        this.getCelebrations();
+      }
+
+      _handleClick(evt) {
+        console.log(evt)
+      }
+
+      _indexChanged(index) {
+        if(!this.celebrations || this.celebrations.length === 0) return;
+        this.set('playMedia', false);
+      }
+
+      startMediaElement(element) {
+        element.play();
+      }
+      
+
+      pauseMedia(swiping) {
+        if(!swiping) return;
+        this.set('videoUrl', "");
+        this.set('audioUrl', ""); 
+        // var vidEl = this.shadowRoot.querySelector('video');
+        // var audioEl = this.shadowRoot.querySelector('audio');
+        
+        // if(vidEl) this.resetMediaElement(vidEl)
+        // if(audioEl) this.resetMediaElement(audioEl)
+      }
+
+      resetMediaElement(element) {
+        element.pause();
+      }
+
+      _slideMatchesIndex(slideIndex, index) {
+        console.log(slideIndex, index)
+        return slideIndex === index;
+      }
+    }
+
+    window.customElements.define(CelebrationSlideshow.is, CelebrationSlideshow);
+  </script>
+</dom-module>

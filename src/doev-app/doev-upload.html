@@ -1,0 +1,115 @@
+<link rel="import" href="doev-element.html">
+<link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-button.html">
+<link rel="import" href="../../bower_components/vaadin-button/vaadin-button.html">
+<link rel="import" href="doev-storage.html">
+
+<dom-module id="doev-upload">
+  <template>
+    <style>
+      :host {
+        display: block;
+      };  
+
+      section {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      vaadin-button {
+        margin: 4px;
+      }      
+      [hidden] {
+        display: none;
+      }
+    </style>
+
+    <section>
+      <vaadin-button disabled="[[noAudio]]" on-click="uploadCelebrationImage">Upload image</vaadin-button>
+      <vaadin-button disabled="[[noAudio]]" on-click="uploadAudio">Upload audio</vaadin-button>    
+      <vaadin-button disabled="[[noVideo]]" on-click="uploadVideo">Upload video</vaadin-button>
+    </section>
+    <p hidden$="[[_isNullOrHundred(videoUploadPerc)]]">Video uploading: [[videoUploadPerc]]</p>
+    <p hidden$="[[_isNullOrHundred(imageUploadPerc)]]">Image uploading: [[imageUploadPerc]]</p>
+    <p hidden$="[[_isNullOrHundred(audioUploadPerc)]]">Audio uploading: [[audioUploadPerc]]</p>
+
+  </template>
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class DoevUpload extends DoevElement {
+      static get is() { return 'doev-upload'; }
+      static get properties() {
+        return {
+          url: {
+            type: String,
+            notify: true
+          },
+          filePath: {
+            type: String
+          },
+          videoUploadPerc: {
+            type: Number,
+            value: null
+          },
+          imageUploadPerc: {
+            type: Number,
+            value: null
+          },
+          audioUploadPerc: {
+            type: Number,
+            value: null
+          },
+          noVideo: {
+            type: Boolean,
+            value: false
+          },
+          noAudio: {
+            type: Boolean,
+            value: false
+          }          
+        };
+      }
+
+      ready() {
+        super.ready()
+        DoevStorage.onUploadingFile = (function(data) {
+          var dataType = data.contentType.split('/')[0];
+          console.log(dataType, dataType + 'UploadPerc')
+          this.set(dataType + 'UploadPerc', data.progress);
+        }).bind(this);
+      }
+
+      uploadAvatar() {
+        this.uploadImage('avatar')
+      }
+
+      uploadCelebrationImage() {
+        this.uploadImage('celebration')
+      }
+
+      uploadImage(imgType) {
+        DoevStorage.saveImage('/celebrations/' + this.filePath, imgType);
+      }
+
+      uploadVideo() {
+        console.log(this.filePath)
+        DoevStorage.saveVideo('/celebrations/' + this.filePath);
+      }
+
+      uploadAudio() {
+        console.log(this.filePath)
+        DoevStorage.saveAudio('/celebrations/' + this.filePath);
+      }
+
+      _isNullOrHundred(uploadPerc) {
+        if(!uploadPerc || uploadPerc === "100" || uploadPerc === 100) return true;
+        return false;
+      }
+  
+    }
+
+    window.customElements.define(DoevUpload.is, DoevUpload);
+  </script>
+</dom-module>

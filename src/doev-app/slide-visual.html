@@ -1,0 +1,111 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/utils/gestures.html">
+
+<dom-module id="slide-visual">
+  <template>
+    <style>
+      :host {
+        display: block;
+      };  
+      * {
+        box-sizing: border-box;
+      }
+      main {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      section {
+        margin: 0 16px;
+      }
+      video {
+        width: 100;
+        max-height: 280px;
+      }
+      audio {
+        width: 100%;
+      }
+      img {
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        pointer-events: none;
+      }
+      #autoplay-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+    </style>
+
+    <main>
+      <template is="dom-if" if="[[audioUrl]]" restamp>
+        <section>
+          <span>Audio</span><audio src="[[audioUrl]]" controls></audio>
+        </section>
+      </template>    
+      
+      <template is="dom-if" if="[[videoUrl]]" restamp>
+        <section>
+          <video playsinline src="[[videoUrl]]" controls></video>
+          <div id="autoplay-container">
+            <input type="checkbox" checked="{{mostRecentUserMediaStateIsPlay::change}}"> 
+            <span>autoplay</span>
+          </div>   
+        </section>             
+      </template>
+    </main>
+    
+
+  </template>
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class SlideVisual extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'slide-visual'; }
+      static get properties() {
+        return {
+          videoUrl: {
+            type: String,
+            value: "",
+          },
+          audioUrl: {
+            type: String,
+            value: ""
+          },
+          mediaPlayable: {
+            type: Boolean,
+            observer: "_handleMediaPlayableChanged"
+          },
+          mostRecentUserMediaStateIsPlay: {
+            type: Boolean,
+            notify: true
+          }
+        };
+      }
+
+      ready() {
+        super.ready();
+      }
+
+      _handleMediaPlayableChanged(playable) {
+        if(!playable) {
+          if(this.shadowRoot.querySelector('video')) this.shadowRoot.querySelector('video').pause();
+          if(this.shadowRoot.querySelector('audio')) this.shadowRoot.querySelector('audio').pause();
+        }
+        console.log("this.mostRecentUserMediaStateIsPlay", this.mostRecentUserMediaStateIsPlay, 'playable', playable)
+        if(playable && this.mostRecentUserMediaStateIsPlay === true) {
+          if(this.shadowRoot.querySelector('video')) this.shadowRoot.querySelector('video').play();
+          if(this.shadowRoot.querySelector('audio')) this.shadowRoot.querySelector('audio').play();          
+        }
+      }
+    }
+
+    window.customElements.define(SlideVisual.is, SlideVisual);
+  </script>
+</dom-module>

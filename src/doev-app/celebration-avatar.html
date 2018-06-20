@@ -1,0 +1,78 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="celebration-avatar">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      
+      section {
+        @apply --layout-vertical;
+        @apply --layout-center-justified;
+        @apply --layout-center;
+        text-align: center;
+      }
+      figure {
+        width: 116px;
+        height: 116px;
+        box-sizing: border-box;
+        border: 8px solid ##FFE164;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        pointer-events: none;
+      }
+      h6 {
+        @apply --serif-base;
+        font-style: italic;
+        margin: 20px 0 0 0;
+      }
+    </style>
+
+    <section>
+      <figure>
+        <img src$="[[resolveUrl(imageUrl)]]" alt="" draggable="false">
+      </figure>
+      <h6>[[name]]</h6>
+    </section>
+
+</template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class CelebrationAvatar extends Polymer.Element {
+      static get is() { return 'celebration-avatar'; }
+      static get properties() {
+        return {
+          name: {
+            type: String,
+            value: null            
+          },
+          imageUrl: {
+            type: String,
+            value: null
+          }
+        };
+      }
+    }
+
+    window.customElements.define(CelebrationAvatar.is, CelebrationAvatar);
+  </script>
+</dom-module>

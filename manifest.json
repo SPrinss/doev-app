@@ -1,0 +1,7 @@
+{
+  "name": "doev-app",
+  "short_name": "doev-app",
+  "description": "Celebrating Doev&#39;s 30th birthday",
+  "start_url": "/",
+  "display": "standalone"
+}

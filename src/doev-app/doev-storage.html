@@ -1,0 +1,299 @@
+<link rel="import" href="../../bower_components/polymerfire/firebase.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-firestore-mixin.html">
+
+<dom-module id="doev-storage">
+<script>
+
+  var DoevStorage = {
+
+    MAX_FILE_SIZE: 100000001,    
+
+    saveVideo: function(filePath) {
+      var element = this._createFileInputElement('video/*');
+      element.onchange = (function(evt) {
+
+        var file = evt.target.files[0];
+        if (file.size > this.MAX_FILE_SIZE) return window.alert("Sorry, this file is too large. Only media files under 100mb are allowed.");
+
+        var videoRef = firebase.database().ref().child(filePath);
+        videoRef.child('videoUrl').set(URL.createObjectURL(file));
+        videoRef.child('video').set(true);
+        this.storeFile(file, filePath, function(fileUrl) {
+          videoRef.child('videoUrl').set(fileUrl);
+        })
+
+      }).bind(this);
+      element.click();    
+    },
+
+    saveAudio: function(filePath) {
+      var element = this._createFileInputElement('audio/*');
+      element.onchange = (function(evt) {
+
+        var file = evt.target.files[0];
+        if (file.size > this.MAX_FILE_SIZE) return window.alert("Sorry, this file is too large. Only media files under 100mb are allowed.");
+
+        var audioRef = firebase.database().ref().child(filePath);
+        audioRef.child('audioUrl').set(URL.createObjectURL(file));
+        audioRef.child('audio').set(true);
+        this.storeFile(file, filePath, function(fileUrl) {
+          audioRef.child('audioUrl').set(fileUrl);
+        })
+
+      }).bind(this);
+      element.click();    
+    },
+
+    _saveVideoImageFrame(file, filePath) {
+      var video = document.createElement('video');
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+
+      video.onloadedmetadata = function() {
+        video.currentTime = 1;
+      };
+
+      video.onseeked = (function(evt) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        ctx.drawImage(video, 0, 0);
+        var dataURL = canvas.toDataURL();
+        var blob = this.base64toBlob(dataURL);
+        
+        this.storeFile(blob, filePath, function(downloadURL) {
+          var videoRef = firebase.database().ref().child(filePath);
+          videoRef.child('imageUrl').set(downloadURL);
+        })
+      }).bind(this);
+
+      video.src = URL.createObjectURL(file);
+    },
+
+    saveImage: function(filePath, imgType) {
+
+      var element = this._createFileInputElement('image/*');
+      element.onchange = (function(evt) {
+
+        var file = evt.target.files[0];
+
+        var imageRef = firebase.database().ref().child(filePath);
+
+        this.resizeImageFile(file, [8], (function(error, data) {
+          
+          //file could not be resized
+          if(error && error.file) {
+            this.uploadFile(file, filePath, file.name, function(data) {
+              imageRef.child(imgType + 'Url').set(data.url);
+            })
+          }
+
+          //normal procedure
+          else {
+            var thumbBlob = data[0].blob;
+            this.blobToBase64(thumbBlob, (function(base64) {
+              imageRef.child(imgType + 'Url').set(base64);
+              this.storeImageFile(file, filePath, function(data) {
+                imageRef.child(imgType+ 'Sizes').set(data);
+              })
+            }).bind(this))
+          }
+
+        }).bind(this));
+
+      }).bind(this);
+
+      element.click();    
+    },
+
+    storeFile: function(file, path, callback) {
+      var storageKey = firebase.database().ref().child('files').push().key;
+      var uploadTask = firebase.storage().ref().child(path).child(storageKey).put(file, {contentType: file.type});
+      var self = this;
+
+      uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED,
+        
+        //uploading...
+        function(snapshot) {
+
+          var progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          self.onUploadingFile && self.onUploadingFile({
+            storageKey: storageKey,
+            progress: progress,
+            contentType: snapshot.metadata.contentType
+          })
+          //console.info('uploading', storageKey, progress, file.type);
+        },
+
+        //error
+        function(error) {
+          //console.info('error while uploading', error.code);
+        },
+
+        //done
+        function() {
+          var downloadURL = uploadTask.snapshot.downloadURL;
+          callback(downloadURL);
+        }.bind(this)
+
+      )
+    },
+
+    storeImageFile: function(file, path, callback) {
+
+      var self = this;
+      this.resizeImageFile(file, [1920, 1440, 1024, 750], function(error, resizedImages) {
+
+        var actions = [];
+
+        for(var i in resizedImages) {
+          var store = new Promise((resolve, reject) => {
+            self.uploadFile(resizedImages[i].blob, path, resizedImages[i].size, resolve)
+          })
+          actions.push(store);
+        }
+
+        Promise.all(actions).then(function(fileUrls) {
+          callback(fileUrls);
+        })
+
+      })
+    },
+
+    uploadFile: function(file, path, fileName, callback) {
+      var storageKey = firebase.database().ref().child('files').push().key;
+      var uploadTask = firebase.storage().ref().child(path).child(storageKey).child(fileName).put(file, {contentType: file.type});
+      var self = this;
+
+      uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED,
+        
+        //uploading...
+        function(snapshot) {
+          var progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          self.onUploadingFile && self.onUploadingFile({
+            storageKey: storageKey,
+            progress: progress,
+            contentType: snapshot.metadata.contentType
+          })
+          //console.info('uploading', storageKey, progress, file.type);
+        },
+        
+        //error
+        function(error) {
+          //console.info('error while uploading', error.code);
+        },
+
+        //done
+        function() {
+        
+          var fileUrl = uploadTask.snapshot.downloadURL;
+          var fileSize = uploadTask.snapshot.ref.name;
+          callback({
+            url: fileUrl,
+            size: fileSize
+          });
+
+        }.bind(this)
+      )
+
+    },
+
+    resizeImageFile: function(file, sizes, callback) {
+      
+      var isResizeableImage = ['image/jpeg', 'image/jpg', 'image/png'].indexOf(file.type) !== -1;
+
+      if(!isResizeableImage) {
+        return callback({file: file, message: 'not resizable'});
+      }
+
+      var actions = [];
+
+      img = new Image();
+      img.onload = (function () {
+
+        for(var i in sizes) {
+          var action = new Promise((resolve, reject) => {
+            this._resizeImage(file, sizes[i], img, function(error, resizedFile) {
+              if(error) {
+                reject(Error(error));
+              } else {
+                resolve({
+                  size: resizedFile.size + 'w',
+                  blob: resizedFile.blob
+                });
+              }
+            });
+          })
+          actions.push(action);
+        }
+
+        Promise.all(actions).then(function(resizedFiles) { 
+          callback(null, resizedFiles);
+        })
+
+      }).bind(this);
+
+      img.src = URL.createObjectURL(file);
+
+    },
+
+    _createFileInputElement: function(accept) {
+      var elem = document.createElement('input');
+      elem.type = 'file';
+      elem.accept = accept;
+      return elem;
+    },
+
+    _resizeImage: function(file, maxSize, img, callback) {
+      
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+
+      var MAX_IMAGE_SIZE = maxSize;
+
+      if(img.width > MAX_IMAGE_SIZE || img.height > MAX_IMAGE_SIZE) {
+        if(img.width >= img.height) {
+          var resizeFactor = MAX_IMAGE_SIZE / img.width;
+        } else {
+          var resizeFactor = MAX_IMAGE_SIZE / img.height;
+        }
+      } else {
+          var resizeFactor = 1;            
+      }
+
+      canvas.height = img.height * resizeFactor;
+      canvas.width = img.width * resizeFactor;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      var dataURL = canvas.toDataURL(file.type);
+      var blob = this.base64toBlob(dataURL);
+
+      callback(null, {size: maxSize, blob: blob});
+
+    },
+
+    blobToBase64: function(blob, callback) {
+       var reader = new FileReader();
+       reader.readAsDataURL(blob); 
+       reader.onload = function(evt) {
+        callback(evt.target.result);
+      }
+    },
+
+    base64toBlob: function(base64, callback) {
+      var byteString = atob(base64.split(',')[1]);
+      var mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
+      var ab = new ArrayBuffer(byteString.length);
+      var ia = new Uint8Array(ab);
+      for (var i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+      }
+      var blob = new Blob([ab], {type: mimeString});
+      return blob;
+    }
+
+  }
+
+</script>
+</dom-module>

@@ -1,0 +1,157 @@
+<link rel="import" href="doev-element.html">
+<link rel="import" href="doev-upload.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+<link rel="import" href="../../bower_components/vaadin-form-layout/vaadin-form-layout.html">
+<link rel="import" href="../../bower_components/vaadin-form-layout/vaadin-form-item.html">
+<link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-text-field.html">
+<link rel="import" href="../../bower_components/vaadin-text-field/vaadin-text-field.html">
+<link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-button.html">
+
+<link rel="import" href="../../bower_components/vaadin-text-field/vaadin-text-area.html">
+<link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-button.html">
+<link rel="import" href="../../bower_components/vaadin-button/vaadin-button.html">
+
+<dom-module id="add-celebration">
+  <template>
+    <style>
+      :host {
+        display: block;
+      };
+
+      * {
+        box-sizing: border-box;
+      }
+      main {
+        width: 100%;
+        height: 100%;        
+        overflow: scroll;
+      }
+
+      vaadin-form-layout {
+        max-width: 600px;
+        width: 100%;
+        margin: auto;
+      }
+      vaadin-text-field {
+        margin-top: .5em;
+        margin-bottom: .5em;
+      }
+      img, video {
+        margin: 16px;
+        max-width: 400px;
+        margin: auto;
+        max-height: 300px;
+      }
+      img {
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        pointer-events: none;        
+      }
+      h3, h4 {
+        display: block;
+        width: 100%;
+      }
+      [hidden] {
+        display: none;
+      }
+    </style>
+
+    <firebase-document
+      path="/celebrations/[[databasePathStart]]"
+      data="{{celebration}}"
+    ></firebase-document>
+      
+    <main>
+      <vaadin-form-layout class="with-text-fields">
+        <h3>Celebrate Doev by adding a message, image, audio fragment or video.</h3>
+        <vaadin-text-area colspan="1" label="Message" max="100" value="{{celebration.message}}"></vaadin-text-area>
+        <doev-upload colspan="2" url="{{pictureUrl}}" file-path="[[databasePathStart]]" no-video="[[celebration.audioUrl]]" no-audio="[[celebration.videoUrl]]"></doev-upload>
+        <h3>Who are you?</h3>
+        <vaadin-text-field colspan="1" label="Name" max="15" value="{{celebration.name}}"></vaadin-text-field>
+        <vaadin-button on-click="_uploadAvatarAttempt">Upload foto</vaadin-button>
+        <small>Please add a picture/avatar of yourself</small>
+
+        <br>
+        
+        <template is="dom-if" if="[[_firstTrueSecondFalse(celebration.celebrationUrl, celebration.celebrationSizes.0.url)]]">
+            <h3>Still uploading image</h3>
+            <img src="[[celebration.celebrationUrl]]" alt="">
+        </template>
+
+        <template is="dom-if" if="[[_firstTrueSecondFalse(celebration.avatarUrl, celebration.avatarSizes.0.url)]]">
+            <h3>Still uploading image</h3>
+            <img src="[[celebration.avatarUrl]]" alt="">
+        </template>    
+
+        <template is="dom-if" if="[[celebration.avatarSizes.0.url]]">
+          <h3>Avatar image</h3>
+          <img src="[[celebration.avatarSizes.0.url]]" alt="">
+        </template>
+
+        <template is="dom-if" if="[[celebration.celebrationSizes.0.url]]">
+            <h3>Celebration image</h3>
+            <img src="[[celebration.celebrationSizes.0.url]]" alt="">
+          </template>    
+
+        <template is="dom-if" if="[[celebration.audioUrl]]">
+            <h3>Audio</h3> 
+            <audio src="[[celebration.audioUrl]]" controls>
+          </template>    
+        
+        <template is="dom-if" if="[[celebration.videoUrl]]">
+            <h3>Video</h3> 
+          <video src="[[celebration.videoUrl]]" controls>
+        </template>
+
+      </vaadin-form-layout>
+    </main>
+
+
+  </template>
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class AddCelebration extends DoevElement {
+      static get is() { return 'add-celebration'; }
+      static get properties() {
+        return {
+          celebration: {
+            type: Object,
+            value: {}
+          },
+          pictureUrl: {
+            type: String
+          },
+          databasePathStart: {
+            type: String
+          }
+        };
+      }
+
+      ready() {
+        super.ready()
+        var randId = firebase.database().ref('ids').push().key;
+        this.set('databasePathStart', randId)
+      }
+
+      _firstTrueSecondFalse(first, second) {
+        return (!!first && !second);
+      }
+
+      _uploadAvatarAttempt() {
+        var uploadEl = this.shadowRoot.querySelector('doev-upload');
+        uploadEl.uploadAvatar();
+      }
+    }
+
+    window.customElements.define(AddCelebration.is, AddCelebration);
+  </script>
+</dom-module>

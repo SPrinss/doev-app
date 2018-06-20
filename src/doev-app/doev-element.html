@@ -1,0 +1,38 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-firestore-mixin.html">
+
+
+<dom-module id="doev-element">
+
+  <script>
+    /**customElement
+     * @
+     * @polymer
+     */
+    class DoevElement extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'doev-element'; }
+      static get properties() {
+        return {
+        }
+      }
+
+      getCelebrations(accountId) {
+        var pages = {};
+        var self = this;
+
+        return firebase.database().ref("celebrations").on('value', 
+        function (querySnapshot) {
+          var celebrations = querySnapshot.val();
+          self.set('celebrations',self._objectToArray(celebrations));
+        })    
+      }
+
+      _objectToArray(obj) {
+        return Object.keys(obj).map(key => obj[key]) || [];;
+      }      
+      
+    }
+    window.customElements.define(DoevElement.is, DoevElement);
+  </script>
+</dom-module>

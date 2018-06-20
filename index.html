@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>doev-app</title>
+    <meta name="description" content="Celebrating Doev&#39;s 30th birthday">
+
+    <!-- See https://goo.gl/OOhYW5 -->
+    <link rel="manifest" href="/manifest.json">
+
+    <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+    <link rel="import" href="/bower_components/polymerfire/firebase-app.html">
+
+    <link rel="import" href="/src/doev-app/doev-app.html">
+  </head>
+  <body>
+
+    <firebase-app
+      auth-domain="celebrating-doev.firebaseapp.com"
+      database-url="https://celebrating-doev.firebaseio.com"
+      api-key="AIzaSyCFhlF9gbeKRNZsXfonoGfEMQDX397INzM"
+      storage-bucket="celebrating-doev.appspot.com"
+      messaging-sender-id="442171150496"
+      project-id="celebrating-doev"
+    ></firebase-app>
+
+    <doev-app></doev-app>
+  </body>
+</html>
