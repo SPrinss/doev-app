@@ -119,7 +119,7 @@
         <vaadin-form-layout class="with-text-fields">
           <h3 colspan="2">Celebrate Doev by adding a message, image, audio fragment or video.</h3>
           <vaadin-text-area colspan="2" class="custom-style" label="Message" max="100" value="{{celebration.message}}"></vaadin-text-area>
-          <doev-upload colspan="2" url="{{pictureUrl}}" file-path="[[celebrationId]]" no-video="[[celebration.audioUrl]]" no-audio="[[celebration.videoUrl]]"></doev-upload>
+          <doev-upload colspan="2" url="{{pictureUrl}}" file-path="[[celebrationId]]" has-img="[[celebration.celebrationUrl]]" has-audio="[[celebration.audioUrl]]" has-video="[[celebration.videoUrl]]" video-upload-perc="{{videoUploadPerc}}"></doev-upload>
           <h3 colspan="2">Who are you?</h3>
           <vaadin-text-field colspan="2" label="Name" max="15" value="{{celebration.name}}"></vaadin-text-field>
           <vaadin-button id="upload-avatar-button" on-click="_uploadAvatarAttempt">Upload avatar foto</vaadin-button>
@@ -165,10 +165,28 @@
             type: Boolean,
             value: false
           },
+          videoUploadPerc: {
+            type: Number,
+            value: 0
+          },
           celebrationId: {
             type: String
           }
         };
+      }
+
+
+      static get observers() {
+        return [
+            '_setUploading(videoUploadPerc, celebration.celebrationSizes.1.url, celebration.celebrationUrl, celebration.avatarSizes.1.url, celebration.avatarUrl)'
+        ]
+      }
+
+      _setUploading(vidUploadChanged, celebrationFullSize, celebrationSmallSize,avatarFullSize,avatarSmallSize) {
+        if(vidUploadChanged && vidUploadChanged > 0 && vidUploadChanged < 100) return this.set('uploading', true);
+        if(celebrationSmallSize && !celebrationFullSize) return this.set('uploading', true);
+        if(avatarSmallSize && !avatarFullSize) return this.set('uploading', true);
+        return this.set('uploading', false);
       }
 
       _firstTrueSecondFalse(first, second) {

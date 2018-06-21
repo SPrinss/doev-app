@@ -18,19 +18,34 @@
       vaadin-button {
         margin: 4px;
       }      
+      .information-box {
+        width: 100%;
+        margin: 6px 0;  
+        border-radius: 12px;
+        padding: 8px;
+        background-color: #2196F3;
+        color: white;
+      }      
       [hidden] {
         display: none;
       }
     </style>
 
     <section>
-      <vaadin-button disabled="[[noAudio]]" on-click="uploadCelebrationImage">Upload image</vaadin-button>
-      <vaadin-button disabled="[[noAudio]]" on-click="uploadAudio">Upload audio</vaadin-button>    
-      <vaadin-button disabled="[[noVideo]]" on-click="uploadVideo">Upload video</vaadin-button>
+      <vaadin-button disabled="[[_atLeastOneIsTrue(hasVideo, hasAudio)]]" on-click="uploadCelebrationImage">Upload image</vaadin-button>
+      <vaadin-button disabled="[[_atLeastOneIsTrue(hasVideo, hasImg)]]" on-click="uploadAudio">Upload audio</vaadin-button>    
+      <vaadin-button disabled="[[_atLeastOneIsTrue(hasAudio, hasImg)]]" on-click="uploadVideo">Upload video</vaadin-button>
     </section>
-    <p hidden$="[[_isNullOrHundred(videoUploadPerc)]]">Video uploading: [[videoUploadPerc]]</p>
-    <p hidden$="[[_isNullOrHundred(imageUploadPerc)]]">Image uploading: [[imageUploadPerc]]</p>
-    <p hidden$="[[_isNullOrHundred(audioUploadPerc)]]">Audio uploading: [[audioUploadPerc]]</p>
+
+    <div class="information-box" hidden$="[[_isNullOrHundred(videoUploadPerc)]]">
+      <small >Video uploading: [[videoUploadPerc]]</small>
+    </div>
+    <div class="information-box" hidden$="[[_isNullOrHundred(imageUploadPerc)]]">
+      <small >Image uploading: [[imageUploadPerc]]</small>
+    </div>
+    <div class="information-box" hidden$="[[_isNullOrHundred(audioUploadPerc)]]">
+        <small>Audio uploading: [[audioUploadPerc]]</small>
+    </div>        
 
   </template>
   <script>
@@ -63,14 +78,18 @@
             notify: true,
             value: null
           },
-          noVideo: {
+          hasVideo: {
             type: Boolean,
             value: false
           },
-          noAudio: {
+          hasAudio: {
             type: Boolean,
             value: false
-          }          
+          },
+          hasImg: {
+            type: Boolean,
+            value: false
+          }                     
         };
       }
 
@@ -80,6 +99,11 @@
           var dataType = data.contentType.split('/')[0];
           this.set(dataType + 'UploadPerc', data.progress);
         }).bind(this);
+      }
+
+      _atLeastOneIsTrue(first, second) {
+        console.log(first, second)
+        return (!!first || !!second);
       }
 
       uploadAvatar() {

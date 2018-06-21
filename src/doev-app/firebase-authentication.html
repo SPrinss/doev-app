@@ -294,10 +294,17 @@
           var date = new Date();
           var timestamp = date.getTime();
           var userName = currentUser.email;
+          
+          var celebrationKey = firebase.database().ref('celebrations').push({
+            user: currentUser.uid
+          }).key;
 
           firebase.database().ref('users').child(currentUser.uid).set({
             createdAt: timestamp, email: userName
           })
+          firebase.database().ref('users').child(currentUser.uid).child('celebrations').child(celebrationKey).set({
+            name: "Celebration 1"
+          }) 
         }).bind(this));
       }
 
