@@ -33,7 +33,7 @@
 
     <section>
       <vaadin-button disabled="[[_atLeastOneIsTrue(hasVideo, hasAudio)]]" on-click="uploadCelebrationImage">Upload image</vaadin-button>
-      <vaadin-button disabled="[[_atLeastOneIsTrue(hasVideo, hasImg)]]" on-click="uploadAudio">Upload audio</vaadin-button>    
+      <vaadin-button disabled="[[_atLeastOneIsTrue(hasVideo)]]" on-click="uploadAudio">Upload audio</vaadin-button>    
       <vaadin-button disabled="[[_atLeastOneIsTrue(hasAudio, hasImg)]]" on-click="uploadVideo">Upload video</vaadin-button>
     </section>
 
@@ -102,7 +102,6 @@
       }
 
       _atLeastOneIsTrue(first, second) {
-        console.log(first, second)
         return (!!first || !!second);
       }
 
