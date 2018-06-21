@@ -1,0 +1,180 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/utils/gestures.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+
+<link rel="import" href="../../bower_components/vaadin-tabs/vaadin-tabs.html">
+<link rel="import" href="../../bower_components/vaadin-tabs/vaadin-tab.html">
+<link rel="import" href="firebase-authentication.html">
+<link rel="import" href="add-celebration.html">
+<link rel="import" href="doev-icons.html">
+
+<dom-module id="doev-account">
+  <template>
+    <style>
+      :host {
+        display: block;
+      };  
+      * {
+        box-sizing: border-box;
+      }
+      main {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+
+    <firebase-auth
+      signed-in="{{signedIn}}"
+      user="{{user}}"
+    ></firebase-auth>
+
+    <firebase-query
+      path="users/[[user.uid]]/celebrations"
+      data="{{userCelebrationIds}}"
+      online="{{databaseOnline}}"
+    ></firebase-query>
+
+    <template is="dom-if" if="[[signedIn]]">
+      <main>
+        <header>
+            <vaadin-tabs slot="title" selected="{{pageIndex}}">
+              <template is="dom-repeat" items="{{userCelebrationIds}}">
+                <vaadin-tab>[[_returnCelebrationTabName(index)]] <iron-icon  data-index$="[[index]]"  icon="doev-icons:delete" on-click="deleteCelebration"></iron-icon></vaadin-tab>
+              </template>
+              <vaadin-tab id="add-celebration-tab" on-click="addCelebration">+ Add</vaadin-tab>
+            </vaadin-tabs>    
+        </header>        
+
+        <iron-pages slot="body" selected="{{pageIndex}}">
+          <template is="dom-repeat" items="{{userCelebrationIds}}" as="celebration">
+            <add-celebration
+              celebration-id="[[celebration.$key]]"
+            ></add-celebration>
+          </template>
+        </iron-pages>    
+      </main>
+    </template>
+    
+    <template is="dom-if" if="[[!signedIn]]">
+
+      <firebase-authentication></firebase-authentication>
+      
+    </template>    
+
+
+  </template>
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class DoevAccount extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'doev-account'; }
+      static get properties() {
+        return {
+          signedIn: {
+            type: Boolean,
+            value: false
+          },
+          user: {
+            type: Object
+          },
+          pageIndex: {
+            type: Number,
+            value: 0
+          },
+          userCelebrationIds: {
+            type: Array,
+            value: [],
+          },
+          databaseOnline: {
+            type: Boolean,
+            value: false
+          },
+          _initialAddCelebrationTabAdded: {
+            type: Boolean,
+            value: false
+          }
+
+        };
+      }
+
+
+      static get observers() {
+        return [
+            '_handleUserCelebrationIdsChanged(userCelebrationIds.*, databaseOnline)'
+        ]
+      }
+
+
+      _handleUserCelebrationIdsChanged(userCelebrationIdsChanged, databaseOnline) {
+        this.set('pageIndex', this.userCelebrationIds.length);
+
+        if(this.userCelebrationIds.length > 0 && this._initialAddCelebrationTabAdded === false)  {
+          this.resetAddCelebrationTab()
+          this.set('_initialAddCelebrationTabAdded', true);
+        }
+      }
+
+      resetAddCelebrationTab() {
+        var vaadinTabsElement = this.shadowRoot.querySelector('vaadin-tabs');
+        let addCelebrationTab = this.shadowRoot.querySelector('#add-celebration-tab');
+        vaadinTabsElement.removeChild(addCelebrationTab)
+        var newAddCelebrationTab = document.createElement('vaadin-tab');
+        newAddCelebrationTab.id = 'add-celebration-tab';
+        newAddCelebrationTab.innerHTML = "+ Add";
+        newAddCelebrationTab.addEventListener('click', this.addCelebration.bind(this), false);
+        vaadinTabsElement.appendChild(newAddCelebrationTab);
+        this.set('pageIndex', 0);
+
+      }
+
+      addCelebration() {
+        this.set('_initialAddCelebrationTabAdded', true)
+        // Have to remove and readd the results tab to fix order bug (selectedTab of results stays it's initial position instead of position + 1 after adding analysis tab).
+        var vaadinTabsElement = this.shadowRoot.querySelector('vaadin-tabs');
+        let addCelebrationTab = this.shadowRoot.querySelector('#add-celebration-tab');
+        vaadinTabsElement.removeChild(addCelebrationTab)
+
+        var amountOfCelebrations = this.userCelebrationIds.length;
+        var newCelebrationName = 'Celebration ' + amountOfCelebrations;
+        var newCelebrationId = firebase.database().ref('users').child(this.user.uid).child('celebrations').push({
+          name: newCelebrationName
+        }).key;
+        firebase.database().ref('celebrations').child(newCelebrationId).set({
+          user: this.user.uid
+        })        
+         
+        var newAddCelebrationTab = document.createElement('vaadin-tab');
+        newAddCelebrationTab.id = 'add-celebration-tab';
+        newAddCelebrationTab.innerHTML = "+ Add";
+        newAddCelebrationTab.addEventListener('click', this.addCelebration.bind(this), false);
+        vaadinTabsElement.appendChild(newAddCelebrationTab);
+
+        this.set('pageIndex', this.userCelebrationIds.length -1);
+      }      
+
+      deleteCelebration(evt) {
+        var doDelete = window.confirm('Are you sure you want to delete? This action cannot be undone.');
+        if(!doDelete) return;
+        var index = evt.target.getAttribute('data-index');
+        console.log(this.userCelebrationIds, index, this.userCelebrationIds[index])
+
+        var id = this.userCelebrationIds[index].$key;
+
+        var newCelebrationId = firebase.database().ref('users').child(this.user.uid).child('celebrations').child(id).set(null);
+        firebase.database().ref('celebrations').child(id).set(null)        
+
+      }
+
+      _returnCelebrationTabName(index) {
+        return "celebration " + (index + 1).toString()
+      }
+    }
+
+    window.customElements.define(DoevAccount.is, DoevAccount);
+  </script>
+</dom-module>

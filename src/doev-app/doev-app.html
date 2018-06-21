@@ -4,21 +4,20 @@
 <link rel="import" href="../../bower_components/app-route/app-location.html">    
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="celebration-slideshow.html">
-<link rel="import" href="add-celebration.html">
+<link rel="import" href="doev-account.html">
 
 <dom-module id="doev-app">
   <template>
     <style>
       :host {
         display: block;
-        position: fixed;
-        top: 0;
+        /* position: fixed; */
+        /* top: 0;
         left: 0;
         bottom: 0;
-        right: 0;
+        right: 0; */
         width: 100%;
         height: 100%;
-        overflow: hidden;
         -webkit-tap-highlight-color: transparent;
         -webkit-text-size-adjust: none;
 
@@ -32,16 +31,21 @@
         box-sizing: border-box;
       }      
 
-      celebration-slideshow, add-celebration {
-        margin-top: 40px;
+      celebration-slideshow, doev-account {
         display: block;
         width: 100%;
         height: 100%;
+        max-width: 660px;
+        margin: 6% auto 0 auto;
+        overflow-y: auto;
       }
 
-      @media screen and (max-device-width: 599px) {
-        celebration-slideshow, add-celebration {
+      @media screen and (max-width: 599px) {
+        celebration-slideshow, doev-account {
           margin-top: 16px;
+        }
+        celebration-slideshow, doev-account {
+          padding: 8px;
         }
       }
     </style>
@@ -61,11 +65,11 @@
     </template>
 
     <template is="dom-if" if="[[addRouteActive]]">
-      <add-celebration></add-celebration>
+      <doev-account></doev-account>
     </template>    
     
 
-</template>
+  </template>
 
   <script>
     /**

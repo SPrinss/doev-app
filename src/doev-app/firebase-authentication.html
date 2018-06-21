@@ -1,0 +1,371 @@
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/polymer/lib/utils/gestures.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/firebase-auth-messages/firebase-auth-messages.html">
+<link rel="import" href="../../bower_components/vaadin-button/vaadin-button.html">
+<link rel="import" href="../../bower_components/vaadin-text-field/vaadin-text-field.html">
+<link rel="import" href="../../bower_components/vaadin-text-field/vaadin-password-field.html">
+<link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-text-field.html">
+<link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-button.html">      
+
+<dom-module id="firebase-authentication">
+ 
+  <template>
+    <style>
+      :host {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      * {
+        box-sizing: border-box;
+      }
+
+      main {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .flex-row-left-aligned {
+        display: flex;
+        flex-direction: row;
+        align-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .auth-button-container {
+        margin-top: 12px;
+      }
+
+      section {
+        margin: auto;
+        width: 100%;
+        max-width: 500px;
+        background-color: var(white, white);
+        border: 2px var(grey, white);
+        border-radius: 5px;
+        padding: 24px;
+      }
+
+      vaadin-text-field, vaadin-password-field  {
+        margin: 0 6px 0 0;
+      }
+      
+      vaadin-button {
+        margin-left: 0;
+      }
+
+      .auth-message {
+        font-size: small;
+        color: #fc5e6e;
+      }
+
+      .auth-message[succes] {
+        color: #afe64a; 
+      }
+
+      h1 {
+        margin-bottom: 16px;
+      }
+
+      a {
+        color: #afe64a;
+        cursor: pointer;
+        font-size: small;
+        border-bottom: 2px solid transparent;
+        margin-top: 8px;
+      }
+     
+      a:hover {
+        border-bottom-color: #afe64a;
+      }
+
+      small {
+        display: block;
+        margin: 0 0 16px 0;
+      }
+
+      [hidden] {
+        display: none!important;
+      }
+    </style>
+
+    <firebase-auth
+      signed-in="{{signedIn}}"
+      user="{{user}}"
+      on-error="_handleAuthError"
+    ></firebase-auth>
+
+    <firebase-auth-messages
+      code="[[authCode]]"
+      message="{{authMessage}}"
+      custom-message="[[customAuthMessage]]"
+    ></firebase-auth-messages>
+
+    <main>
+
+    <dom-if if="[[!signedIn]]">
+    <template>
+
+      <dom-if if="[[existingUser]]">
+      <template>
+        <section>
+          <h1>Sign in</h1>
+          <article>
+            <div class="flex-row-left-aligned">
+              <vaadin-text-field
+                label="Email"
+                value="{{username}}"
+                tabindex="1"
+                required
+              ></vaadin-text-field>
+              <vaadin-password-field
+                label="Password"
+                value="{{password}}"
+                on-keydown="_handlePasswordKeydown"                
+                tabindex="2"
+                required
+              ></vaadin-password-field>
+            </div>
+            <span class="auth-message" data-succes$="[[_succesAuthMessage]]">[[authMessage]]</span>
+            <div class="flex-row-left-aligned auth-button-container">
+              <vaadin-button
+                on-click="signIn"
+                disabled="[[!_passwordHasValue]]"
+                tabindex="4"
+              >Sign in</vaadin-button>
+              <vaadin-button
+                on-click="sendResetPasswordMail"
+                hidden$="[[!_showPasswordResetButton]]"
+                tabindex="3"
+              >Reset password</vaadin-button>         
+            </div>     
+            <a on-click="showCreateAccountPage">New to Doev is awesome? Click here to create an account</a>
+          </article>
+        </section>
+      </template>
+      </dom-if>
+
+      <dom-if if="[[!existingUser]]">
+      <template>
+        <section>
+
+          <h1>Create account</h1>
+          <article>
+            <div class="flex-row-left-aligned">
+              <vaadin-text-field
+                label="Email"
+                value="{{username}}"
+                tabindex="1"
+                required
+              ></vaadin-text-field>
+              <vaadin-password-field
+                label="Password"
+                value="{{password}}"
+                on-keydown="_handlePasswordKeydown"
+                tabindex="2"
+                required
+              ></vaadin-password-field>
+            </div>
+            <span class="auth-message" data-succes$="[[_succesAuthMessage]]">[[authMessage]]</span>
+            <div class="flex-row-left-aligned auth-button-container">
+              <vaadin-button
+                id="create-account-button"
+                on-click="createAccount"
+                disabled="[[!_passwordHasValue]]"    
+                tabindex="3"            
+              >Create account</vaadin-button>
+            </div>
+            <a on-click="showSignInPage">Already have an account? Click here to sign in</a>
+          </article>
+        </section>
+      </template>
+      </dom-if>
+    </main>
+
+    </template>
+    </dom-if>
+
+    <dom-if if="[[signedIn]]">
+    <template>
+
+      <main>
+        <h1>Signed in</h1>
+        <section>
+          <article>
+            Congratulations, you are now signed in!
+            <vaadin-button
+              on-click="signOut"
+            >Sign out</vaadin-button>
+          </article>
+        </main>
+
+    </template>
+    </dom-if>
+
+  </template>
+
+  <script>
+    /**
+     * `firebase-authentication`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/firebase-authentication.html
+     */
+    class FirebaseAuthentication extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'firebase-authentication'; }
+      static get properties() {
+        return {
+          signedIn: {
+            type: String,
+            notify: true,
+            observer: '_signedInChanged'
+          },
+
+          user: {
+            type: Object,
+            notify: true
+          },
+
+          username: {
+            type: String,
+            observer: '_handleUsernameChanged'
+          },
+
+          password: {
+            type: String,
+            observer: '_handlePasswordChanged'
+          },
+
+          existingUser: {
+            type: Boolean,
+            value: true,
+            observer: '_handleExistingUserChanged'            
+          },
+
+          authCode: {
+            type: String,
+            observer: '_handleAuthCodeChanged'
+          },
+
+          authMessage: {
+            type: String
+          },
+
+          customAuthMessage: {
+            type: String,
+            value: "Succesfully requested password, please check your email."
+          },
+
+          sendVerificationEmail: {
+            type: Boolean,
+            value: false
+          },
+
+          _succesAuthMessage: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
+          },
+
+          _passwordHasValue: { 
+            type: Boolean,
+            value: false
+          },
+
+          _showPasswordResetButton: {
+            type: Boolean,
+            value: false
+          }
+        }
+      }
+
+      createAccount() {
+        this.shadowRoot.querySelector('firebase-auth').createUserWithEmailAndPassword(this.username, this.password).then((function(){
+          var currentUser = firebase.auth().currentUser;
+          var date = new Date();
+          var timestamp = date.getTime();
+          var userName = currentUser.email;
+
+          firebase.database().ref('users').child(currentUser.uid).set({
+            createdAt: timestamp, email: userName
+          })
+        }).bind(this));
+      }
+
+      signIn() {
+        this.shadowRoot.querySelector('firebase-auth').signInWithEmailAndPassword(this.username, this.password);
+      }
+
+      signOut() {
+        this.shadowRoot.querySelector('firebase-auth').signOut();
+      }
+
+      sendResetPasswordMail() {
+        this.shadowRoot.querySelector('firebase-auth').sendPasswordResetEmail(this.username).then(function(){
+          this.set('_succesAuthMessage', true);          
+          this.set('authCode', "custom-message");
+        }.bind(this));
+      }
+
+      showCreateAccountPage() {
+        this.existingUser = false;
+      }
+
+      showSignInPage() {
+        this.existingUser = true;
+      }
+
+      _handleAuthError(evt) {
+        this.set('_succesAuthMessage', false);
+        this.set('authCode', evt.detail.code)
+      }
+
+      _signedInChanged() {
+        this.password = null;
+      }
+
+      _handleAuthCodeChanged(authCode) {
+        if(authCode == "auth/wrong-password") this.set('_showPasswordResetButton', true);
+      }
+
+      _resetAuthMetaAspects() {
+        this.set('authCode', null);
+        this.set('_succesAuthMessage', false);
+        this.set('_showPasswordResetButton', false);
+      }
+
+      _handlePasswordChanged(password) {
+        this._resetAuthMetaAspects();
+        this.set('_passwordHasValue', !!password);
+      }
+
+      _handleUsernameChanged() {
+        this._resetAuthMetaAspects();        
+      }
+
+      _handleExistingUserChanged() {
+        this._resetAuthMetaAspects();        
+      }
+
+      _handlePasswordKeydown(evt) {
+        var keyCode =  evt.which || evt.keyCode; 
+        if(keyCode === 13) {
+          if(this.existingUser) return this.signIn()
+          return this.createAccount()
+        }
+      }
+      
+    }
+
+    window.customElements.define(FirebaseAuthentication.is, FirebaseAuthentication);
+  </script>
+</dom-module>

@@ -17,7 +17,10 @@
     "skeleton-carousel": "FabricElements/skeleton-carousel#2.0",
     "vaadin-form-layout": "vaadin/vaadin-form-layout#^2.0.1",
     "vaadin-upload": "vaadin/vaadin-upload#^4.1.0",
-    "vaadin-valo-theme": "vaadin/vaadin-valo-theme#^0.3.2"
+    "vaadin-valo-theme": "vaadin/vaadin-valo-theme#^0.3.2",
+    "vaadin-tabs": "vaadin/vaadin-tabs#^1.0.0",
+    "firebase-auth-messages": "SPrinss/firebase-auth-messages",
+    "iron-pages": "PolymerElements/iron-pages#^2.1.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",

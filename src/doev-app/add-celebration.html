@@ -1,12 +1,14 @@
 <link rel="import" href="doev-element.html">
 <link rel="import" href="doev-upload.html">
+<link rel="import" href="celebration-slide.html">
 <link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
-
 <link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
 
 <link rel="import" href="../../bower_components/vaadin-form-layout/vaadin-form-layout.html">
 <link rel="import" href="../../bower_components/vaadin-form-layout/vaadin-form-item.html">
 <link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-text-field.html">
+<link rel="import" href="text-area-theme.html">
+
 <link rel="import" href="../../bower_components/vaadin-text-field/vaadin-text-field.html">
 <link rel="import" href="../../bower_components/vaadin-valo-theme/vaadin-button.html">
 
@@ -27,35 +29,44 @@
       main {
         width: 100%;
         height: 100%;        
-        overflow: scroll;
       }
 
-      vaadin-form-layout {
-        max-width: 600px;
+      section {
         width: 100%;
-        margin: auto;
+      }
+      celebration-slide {
+        min-height: 400px;
+        width: 100%;
       }
       vaadin-text-field {
         margin-top: .5em;
         margin-bottom: .5em;
       }
-      img, video {
-        margin: 16px;
-        max-width: 400px;
-        margin: auto;
-        max-height: 300px;
+      .information-box {
+        width: 100%;
+        margin: 6px 0;  
+        border-radius: 12px;
+        padding: 8px;
       }
-      img {
-        user-select: none;
-        -moz-user-select: none;
-        -webkit-user-drag: none;
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        pointer-events: none;        
+      .information-box * {
+        color: white;
+      }
+      #warning-container {
+        background-color: #f44336;
+      }
+      #autosave-container {
+        background-color: #2196F3;
       }
       h3, h4 {
         display: block;
         width: 100%;
+      }
+      vaadin-text-area [part="input-field"] {
+        background-color:  hsl(210, 0%, 98%);
+      }
+      #upload-avatar-button {
+        width: 114px;
+        margin-left: 8px;
       }
       [hidden] {
         display: none;
@@ -63,53 +74,45 @@
     </style>
 
     <firebase-document
-      path="/celebrations/[[databasePathStart]]"
+      path="/celebrations/[[celebrationId]]"
       data="{{celebration}}"
     ></firebase-document>
       
     <main>
-      <vaadin-form-layout class="with-text-fields">
-        <h3>Celebrate Doev by adding a message, image, audio fragment or video.</h3>
-        <vaadin-text-area colspan="1" label="Message" max="100" value="{{celebration.message}}"></vaadin-text-area>
-        <doev-upload colspan="2" url="{{pictureUrl}}" file-path="[[databasePathStart]]" no-video="[[celebration.audioUrl]]" no-audio="[[celebration.videoUrl]]"></doev-upload>
-        <h3>Who are you?</h3>
-        <vaadin-text-field colspan="1" label="Name" max="15" value="{{celebration.name}}"></vaadin-text-field>
-        <vaadin-button on-click="_uploadAvatarAttempt">Upload foto</vaadin-button>
-        <small>Please add a picture/avatar of yourself</small>
+      <section>
+        <div class="information-box" id="warning-container" hidden$="[[!uploading]]">
+          <small>Still uploading files, don't close this window.</small>
+        </div>
+        <div class="information-box" id="autosave-container">
+          <small>Any change is automatically saved. (You do have to wait for files to be fully uploaded!)</small>
+        </div>      
+      </section>      
+      <section>
+        <vaadin-form-layout class="with-text-fields">
+          <h3 colspan="2">Celebrate Doev by adding a message, image, audio fragment or video.</h3>
+          <vaadin-text-area colspan="2" class="custom-style" label="Message" max="100" value="{{celebration.message}}"></vaadin-text-area>
+          <doev-upload colspan="2" url="{{pictureUrl}}" file-path="[[celebrationId]]" no-video="[[celebration.audioUrl]]" no-audio="[[celebration.videoUrl]]"></doev-upload>
+          <h3 colspan="2">Who are you?</h3>
+          <vaadin-text-field colspan="2" label="Name" max="15" value="{{celebration.name}}"></vaadin-text-field>
+          <vaadin-button id="upload-avatar-button" on-click="_uploadAvatarAttempt">Upload foto</vaadin-button>
+          <small colspan="2">Please add a picture/avatar of yourself</small>
 
-        <br>
-        
-        <template is="dom-if" if="[[_firstTrueSecondFalse(celebration.celebrationUrl, celebration.celebrationSizes.0.url)]]">
-            <h3>Still uploading image</h3>
-            <img src="[[celebration.celebrationUrl]]" alt="">
-        </template>
-
-        <template is="dom-if" if="[[_firstTrueSecondFalse(celebration.avatarUrl, celebration.avatarSizes.0.url)]]">
-            <h3>Still uploading image</h3>
-            <img src="[[celebration.avatarUrl]]" alt="">
-        </template>    
-
-        <template is="dom-if" if="[[celebration.avatarSizes.0.url]]">
-          <h3>Avatar image</h3>
-          <img src="[[celebration.avatarSizes.0.url]]" alt="">
-        </template>
-
-        <template is="dom-if" if="[[celebration.celebrationSizes.0.url]]">
-            <h3>Celebration image</h3>
-            <img src="[[celebration.celebrationSizes.0.url]]" alt="">
-          </template>    
-
-        <template is="dom-if" if="[[celebration.audioUrl]]">
-            <h3>Audio</h3> 
-            <audio src="[[celebration.audioUrl]]" controls>
-          </template>    
-        
-        <template is="dom-if" if="[[celebration.videoUrl]]">
-            <h3>Video</h3> 
-          <video src="[[celebration.videoUrl]]" controls>
-        </template>
-
-      </vaadin-form-layout>
+        </vaadin-form-layout>
+      </section>
+      
+      <section>
+        <h3>Preview</h3>
+        <celebration-slide
+          audio-url="[[celebration.audioUrl]]"
+          video-url="[[celebration.videoUrl]]"
+          media-playable="true"
+          most-recent-user-media-state-is-play="false"
+          message="[[celebration.message]]"
+          img-url="[[celebration.celebrationSizes.1.url]]"
+          name="[[celebration.name]]"
+          avatar-url="[[celebration.avatarSizes.1.url]]"
+        ></celebration-slide>
+      </section>
     </main>
 
 
@@ -130,16 +133,14 @@
           pictureUrl: {
             type: String
           },
-          databasePathStart: {
+          uploading: {
+            type: Boolean,
+            value: false
+          },
+          celebrationId: {
             type: String
           }
         };
-      }
-
-      ready() {
-        super.ready()
-        var randId = firebase.database().ref('ids').push().key;
-        this.set('databasePathStart', randId)
       }
 
       _firstTrueSecondFalse(first, second) {
