@@ -21,6 +21,13 @@
     <style>
       :host {
         display: block;
+        --serif-base: {
+          font-family: 'Georgia';
+          font-weight: 400;
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
       };
 
       * {
@@ -39,8 +46,8 @@
         width: 100%;
       }
       vaadin-text-field {
-        margin-top: .5em;
-        margin-bottom: .5em;
+        margin-top: .25em;
+        margin-bottom: .25em;
       }
       .information-box {
         width: 100%;
@@ -60,13 +67,33 @@
       h3, h4 {
         display: block;
         width: 100%;
+        @apply --serif-base;
+        margin-bottom: 0;
+        margin-top: 20px;
+      }
+
+      h2 {
+        text-align: center;
+
+      }
+      vaadin-text-area {
+        min-height: 160px;
+
       }
       vaadin-text-area [part="input-field"] {
         background-color:  hsl(210, 0%, 98%);
       }
+
+      vaadin-form-layout {
+        padding-bottom: 20px;
+      }
+      #form {
+        border-bottom: 2px solid grey;
+      }
       #upload-avatar-button {
         width: 114px;
         margin-left: 8px;
+        margin-top: 0;
       }
       [hidden] {
         display: none;
@@ -86,22 +113,23 @@
         <div class="information-box" id="autosave-container">
           <small>Any change is automatically saved. (You do have to wait for files to be fully uploaded!)</small>
         </div>      
-      </section>      
-      <section>
+      </section> 
+
+      <section id="form">
         <vaadin-form-layout class="with-text-fields">
           <h3 colspan="2">Celebrate Doev by adding a message, image, audio fragment or video.</h3>
           <vaadin-text-area colspan="2" class="custom-style" label="Message" max="100" value="{{celebration.message}}"></vaadin-text-area>
           <doev-upload colspan="2" url="{{pictureUrl}}" file-path="[[celebrationId]]" no-video="[[celebration.audioUrl]]" no-audio="[[celebration.videoUrl]]"></doev-upload>
           <h3 colspan="2">Who are you?</h3>
           <vaadin-text-field colspan="2" label="Name" max="15" value="{{celebration.name}}"></vaadin-text-field>
-          <vaadin-button id="upload-avatar-button" on-click="_uploadAvatarAttempt">Upload foto</vaadin-button>
+          <vaadin-button id="upload-avatar-button" on-click="_uploadAvatarAttempt">Upload avatar foto</vaadin-button>
           <small colspan="2">Please add a picture/avatar of yourself</small>
 
         </vaadin-form-layout>
       </section>
       
       <section>
-        <h3>Preview</h3>
+        <h2>Preview</h2>
         <celebration-slide
           audio-url="[[celebration.audioUrl]]"
           video-url="[[celebration.videoUrl]]"

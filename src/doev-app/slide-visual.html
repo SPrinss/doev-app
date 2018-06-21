@@ -17,11 +17,10 @@
         flex-wrap: wrap;
       }
       section {
-        margin: 0 16px;
+        width: 100%;
       }
       video {
         width: 100%;
-        max-height: 280px;
       }
       audio {
         width: 100%;
@@ -44,7 +43,7 @@
     <main>
       <template is="dom-if" if="[[audioUrl]]" restamp>
         <section>
-          <span>Audio</span><audio src="[[audioUrl]]" controls></audio>
+          <audio src="[[audioUrl]]" controls></audio>
         </section>
       </template>    
       
@@ -98,7 +97,6 @@
           if(this.shadowRoot.querySelector('video')) this.shadowRoot.querySelector('video').pause();
           if(this.shadowRoot.querySelector('audio')) this.shadowRoot.querySelector('audio').pause();
         }
-        console.log("this.mostRecentUserMediaStateIsPlay", this.mostRecentUserMediaStateIsPlay, 'playable', playable)
         if(playable && this.mostRecentUserMediaStateIsPlay === true) {
           if(this.shadowRoot.querySelector('video')) this.shadowRoot.querySelector('video').play();
           if(this.shadowRoot.querySelector('audio')) this.shadowRoot.querySelector('audio').play();          

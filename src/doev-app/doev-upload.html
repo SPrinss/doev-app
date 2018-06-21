@@ -78,7 +78,6 @@
         super.ready()
         DoevStorage.onUploadingFile = (function(data) {
           var dataType = data.contentType.split('/')[0];
-          console.log(dataType, dataType + 'UploadPerc')
           this.set(dataType + 'UploadPerc', data.progress);
         }).bind(this);
       }
@@ -96,12 +95,10 @@
       }
 
       uploadVideo() {
-        console.log(this.filePath)
         DoevStorage.saveVideo('/celebrations/' + this.filePath);
       }
 
       uploadAudio() {
-        console.log(this.filePath)
         DoevStorage.saveAudio('/celebrations/' + this.filePath);
       }
 

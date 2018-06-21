@@ -7,7 +7,9 @@
       :host {
         display: block;
       }
-      
+      * {
+        box-sizing: border-box;
+      }
       section {
         @apply --layout-vertical;
         @apply --layout-center-justified;
@@ -36,7 +38,7 @@
         -ms-user-select: none;
         pointer-events: none;
       }
-      h6 {
+      h5 {
         font-style: italic;
         margin: 20px 0 0 0;
       }
@@ -46,7 +48,7 @@
       <figure>
         <img src$="[[resolveUrl(imageUrl)]]" alt="" draggable="false">
       </figure>
-      <h6>[[name]]</h6>
+      <h5>[[name]]</h5>
     </section>
 
 </template>
