@@ -21,7 +21,9 @@
 
       celebration-slide {
         width: 100%;
-        height: 100%;
+        max-height: 100vh;
+        min-height: 100vh;
+
       }
     </style>
     
@@ -33,6 +35,8 @@
     <skeleton-carousel
       nav 
       loop
+      auto="[[autoPlay]]"
+      duration="[[duration]]"
       selected="{{slideIndex}}"
     >
       <template is="dom-repeat" items="[[celebrations]]" as="celebration">
@@ -41,7 +45,7 @@
             audio-url="[[celebration.audioUrl]]"
             video-url="[[celebration.videoUrl]]"
             media-playable="[[_slideMatchesIndex(slideIndex, index)]]"
-            most-recent-user-media-state-is-play="{{autoPlay}}"
+            most-recent-user-media-state-is-play="{{autoPlayMedia}}"
             message="[[celebration.message]]"
             img-url="[[celebration.celebrationSizes.1.url]]"
             name="[[celebration.name]]"
@@ -70,7 +74,15 @@
             type: Number,
             value: 0,
           },
+          duration: {
+            type: Number,
+            value: 4000
+          },
           autoPlay: {
+            type: Boolean,
+            value: false
+          },
+          autoPlayMedia: {
             type: Boolean,
             value: false
           }

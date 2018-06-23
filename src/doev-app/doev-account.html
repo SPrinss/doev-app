@@ -4,7 +4,9 @@
 <link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
+<link rel="import" href="doev-icons.html">
 <link rel="import" href="../../bower_components/vaadin-tabs/vaadin-tabs.html">
 <link rel="import" href="../../bower_components/vaadin-tabs/vaadin-tab.html">
 <link rel="import" href="firebase-authentication.html">
@@ -23,6 +25,26 @@
       main {
         width: 100%;
         height: 100%;
+      }
+      @media screen and (max-width: 768px) {
+        main {
+          padding: 0 8px;
+          box-sizing: border-box;
+
+        }
+      }
+      header {
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+      }
+      vaadin-tabs {
+        max-width: 85%;
+        box-sizing: border-box;
+
       }
     </style>
 
@@ -44,8 +66,8 @@
               <template is="dom-repeat" items="{{userCelebrationIds}}">
                 <vaadin-tab>[[_returnCelebrationTabName(index)]] <iron-icon  data-index$="[[index]]"  icon="doev-icons:delete" on-click="deleteCelebration"></iron-icon></vaadin-tab>
               </template>
-              <vaadin-tab id="add-celebration-tab" on-click="addCelebration">+ Add</vaadin-tab>
-            </vaadin-tabs>    
+            </vaadin-tabs>
+            <paper-icon-button icon="doev-icons:add" on-click="addCelebration"></paper-icon-button>
         </header>        
 
         <iron-pages slot="body" selected="{{pageIndex}}">
@@ -101,43 +123,7 @@
         };
       }
 
-
-      static get observers() {
-        return [
-            '_handleUserCelebrationIdsChanged(userCelebrationIds.*, databaseOnline)'
-        ]
-      }
-
-
-      _handleUserCelebrationIdsChanged(userCelebrationIdsChanged, databaseOnline) {
-        this.set('pageIndex', this.userCelebrationIds.length);
-
-        if(this.userCelebrationIds.length > 0 && this._initialAddCelebrationTabAdded === false)  {
-          this.resetAddCelebrationTab()
-          this.set('_initialAddCelebrationTabAdded', true);
-        }
-      }
-
-      resetAddCelebrationTab() {
-        var vaadinTabsElement = this.shadowRoot.querySelector('vaadin-tabs');
-        let addCelebrationTab = this.shadowRoot.querySelector('#add-celebration-tab');
-        vaadinTabsElement.removeChild(addCelebrationTab)
-        var newAddCelebrationTab = document.createElement('vaadin-tab');
-        newAddCelebrationTab.id = 'add-celebration-tab';
-        newAddCelebrationTab.innerHTML = "+ Add";
-        newAddCelebrationTab.addEventListener('click', this.addCelebration.bind(this), false);
-        vaadinTabsElement.appendChild(newAddCelebrationTab);
-        this.set('pageIndex', 0);
-
-      }
-
       addCelebration() {
-        this.set('_initialAddCelebrationTabAdded', true)
-        // Have to remove and readd the results tab to fix order bug (selectedTab of results stays it's initial position instead of position + 1 after adding analysis tab).
-        var vaadinTabsElement = this.shadowRoot.querySelector('vaadin-tabs');
-        let addCelebrationTab = this.shadowRoot.querySelector('#add-celebration-tab');
-        vaadinTabsElement.removeChild(addCelebrationTab)
-
         var amountOfCelebrations = this.userCelebrationIds.length;
         var newCelebrationName = 'Celebration ' + amountOfCelebrations;
         var newCelebrationId = firebase.database().ref('users').child(this.user.uid).child('celebrations').push({
@@ -146,12 +132,6 @@
         firebase.database().ref('celebrations').child(newCelebrationId).set({
           user: this.user.uid
         })        
-         
-        var newAddCelebrationTab = document.createElement('vaadin-tab');
-        newAddCelebrationTab.id = 'add-celebration-tab';
-        newAddCelebrationTab.innerHTML = "+ Add";
-        newAddCelebrationTab.addEventListener('click', this.addCelebration.bind(this), false);
-        vaadinTabsElement.appendChild(newAddCelebrationTab);
 
         this.set('pageIndex', this.userCelebrationIds.length -1);
       }      
@@ -163,12 +143,12 @@
         var id = this.userCelebrationIds[index].$key;
 
         var newCelebrationId = firebase.database().ref('users').child(this.user.uid).child('celebrations').child(id).set(null);
-        firebase.database().ref('celebrations').child(id).set(null)        
-
+        firebase.database().ref('celebrations').child(id).set(null)   
+        this.set('pageIndex', 0);
       }
 
       _returnCelebrationTabName(index) {
-        return "celebration " + (index + 1).toString()
+        return "Bericht " + (index + 1).toString()
       }
     }
 

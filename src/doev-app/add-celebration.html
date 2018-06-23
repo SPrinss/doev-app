@@ -108,7 +108,7 @@
     <main>
       <section>
         <div class="information-box" id="warning-container" hidden$="[[!uploading]]">
-          <small>Still uploading files, don't close this window.</small>
+          <small>Still uploading files, don't close this window!</small>
         </div>
         <div class="information-box" id="autosave-container">
           <small>Any change is automatically saved. (You do have to wait for files to be fully uploaded!)</small>
@@ -117,7 +117,7 @@
 
       <section id="form">
         <vaadin-form-layout class="with-text-fields">
-          <h3 colspan="2">Celebrate Doev by adding a message, image, audio fragment or video.</h3>
+          <h3 colspan="2">Add a message, image, audio fragment and/or video.</h3>
           <vaadin-text-area colspan="2" class="custom-style" label="Message" max="100" value="{{celebration.message}}"></vaadin-text-area>
           <doev-upload colspan="2" url="{{pictureUrl}}" file-path="[[celebrationId]]" has-img="[[celebration.celebrationUrl]]" has-audio="[[celebration.audioUrl]]" has-video="[[celebration.videoUrl]]" video-upload-perc="{{videoUploadPerc}}"></doev-upload>
           <h3 colspan="2">Who are you?</h3>

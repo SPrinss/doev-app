@@ -5,7 +5,7 @@
     ]
   },
   "builds": [{
-    "bundle": true,
+    "name": "bundled",
     "js": {"compile": true, "minify": true},
     "css": {"minify": true},
     "html": {"minify": true}
